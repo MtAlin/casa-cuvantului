@@ -27,3 +27,4 @@ const StudyResponseSchema = new Schema<IStudyResponse>({
 }, { timestamps: true });
 
 export const StudyResponse = mongoose.model<IStudyResponse>('StudyResponse', StudyResponseSchema);
+export default StudyResponse;
