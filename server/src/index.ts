@@ -11,21 +11,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to Database and Start Server
-const startServer = async () => {
-  try {
-    await connectDB();
-    startCronJobs();
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('❌ Fatal error during server startup:', error);
-    process.exit(1);
-  }
-};
+// Connect to Database (cached for Vercel)
+connectDB().catch(err => console.error('DB Connection Failed:', err));
 
-startServer();
+// Start Cron Jobs only if NOT running on Vercel
+if (process.env.VERCEL !== '1') {
+  startCronJobs();
+}
 
 // Middleware
 app.use(cors());
@@ -64,4 +56,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ message: err.message || 'Something broke on the server!' });
 });
 
+// Start listening only if NOT on Vercel
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+}
 
+export default app;

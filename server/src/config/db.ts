@@ -1,6 +1,13 @@
 import mongoose from 'mongoose';
 
+let isConnected = false;
+
 const connectDB = async (): Promise<void> => {
+  if (isConnected) {
+    console.log('=> Using existing MongoDB connection');
+    return;
+  }
+
   try {
     const mongoURI = process.env.MONGODB_URI;
     if (!mongoURI) {
@@ -8,16 +15,13 @@ const connectDB = async (): Promise<void> => {
     }
 
     const conn = await mongoose.connect(mongoURI);
+    isConnected = !!conn.connections[0].readyState;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📂 Using database: ${conn.connection.db?.databaseName || 'disciplebookplanner'}`);
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    } else {
-      console.error('❌ MongoDB Connection Error:', error);
-    }
-    console.error('❌ Server exiting due to database connection failure.');
-    process.exit(1);
+    console.error('❌ MongoDB Connection Error:', error);
+    // Remove process.exit(1) to avoid killing the Vercel serverless function container entirely
+    throw error;
   }
 };
 
